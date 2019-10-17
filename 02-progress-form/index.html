@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+	<title>Progress Form on Vue.js</title>
+
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+	<script src="https://cdn.jsdelivr.net/npm/vue@2.6.10/dist/vue.js"></script>
+</head>
+<body>
+
+	<div class="wrapper">
+
+		<div class="container">
+			<div class="row justify-content-md-center">
+				<div class="col-md-8 col-lg-6">
+
+					<br>
+					<h1 class="mt-2">Progress Form</h1>
+					<hr>
+					<br>
+
+					<div id="progress-form">
+						<!-- Form -->
+						<form action="" method="POST" v-if="!formSubmitted" @submit.prevent="formSubmitted = true">
+							<div class="progress">
+								<div class="progress-bar" :style="'width: ' + progressWidth + '%'"></div>
+							</div>
+							<br>
+
+							<div class="form-group" v-for="(infoItem, index) in info">
+								<label :for="infoItem.name">{{ infoItem.name }} *</label>
+								<i class="fa" :class="iconClass(index)"></i>
+								<input type="text" class="form-control" :id="infoItem.name" :name="infoItem.name" v-model="infoItem.value" required>
+							</div>
+
+							<br>
+							<hr>
+
+							<button type="submit" class="btn btn-primary mt-2 mb-2 mr-2">Send Data</button>
+							<button type="reset" class="btn btn-warning mt-2 mb-2" @click="resetForm">Reset Form</button>
+						</form>
+
+						<!-- Done content -->
+						<div class="done-content" v-else>
+							<h2>All Done!</h2>
+							<br>
+
+							<div class="table-responsive border mb-2">
+								<table class="table table-bordered mb-0">
+									<tr v-for="infoItem in info">
+										<td>{{ infoItem.name }}:</td>
+										<td>{{ infoItem.value }}</td>
+									</tr>
+								</table>
+							</div>
+
+							<br>
+							<hr>
+
+							<button type="reset" class="btn btn-success mt-2 mb-2" @click="resetForm">Ok</button>
+						</div>
+
+						<br>
+
+					</div>
+
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<script>
+		let bookForm = new Vue({
+			el: '#progress-form',
+			data: {
+				formSubmitted: false,
+
+				info: [
+					{
+						name: 'Name',
+						value: '',
+						pattern: /^[a-zA-Z ]{2,30}$/
+					},
+					{
+						name: 'Email',
+						value: '',
+						pattern: /.+/
+					},
+					{
+						name: 'Phone',
+						value: '',
+						pattern: /^[0-9]{7,14}$/
+					},
+					{
+						name: 'Some Field 1',
+						value: '',
+						pattern: /.+/
+					},
+					{
+						name: 'Some Field 2',
+						value: '',
+						pattern: /.+/
+					}
+				]
+			},
+			computed: {
+				progressWidth() {
+					let infoThis = this.info;
+					for (let index in infoThis) {
+						if (infoThis[index].pattern.test(infoThis[index].value)) {
+							return progressWidth += 25;
+						} else if (infoThis[index].value.length > 0) {
+							return progressWidth -= 25;
+						} else {
+							return progressWidth = 0;
+						}
+					}
+				},
+			},
+			methods: {
+				iconClass(index) {
+					let infoThis = this.info;
+					if (infoThis[index].pattern.test(infoThis[index].value)) {
+						return 'fa-check-circle text-success';
+					} else if (infoThis[index].value.length > 0) {
+						return 'fa-exclamation-circle text-danger';
+					} else {
+						return '';
+					}
+				},
+
+				resetForm(){
+					this.formSubmitted = false;
+
+					let infoThis = this.info;
+					for (let index in infoThis) {
+						infoThis[index].value = '';
+					}
+				}
+			}
+		})
+	</script>
+
+</body>
+</html>
