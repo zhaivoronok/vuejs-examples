@@ -27,20 +27,37 @@
 						<!-- Form -->
 						<form action="" method="POST" v-if="!formSubmitted" @submit.prevent="formSubmitted = true">
 							<div class="progress">
-								<div class="progress-bar" :style="'width: ' + progressWidth + '%'"></div>
+								<div class="progress-bar" :style="progressWidth"></div>
 							</div>
 							<br>
 
 							<div class="form-group" v-for="(infoItem, index) in info">
 								<label :for="infoItem.name">{{ infoItem.name }} *</label>
-								<i class="fa" :class="iconClass(index)"></i>
-								<input type="text" class="form-control" :id="infoItem.name" :name="infoItem.name" v-model="infoItem.value" required>
+								<i
+										class="fa"
+										v-if="controls[index].activated"
+										:class="controls[index].error ?
+										'fa-exclamation-circle text-danger' :
+										'fa-check-circle text-success'"
+								></i>
+								<input
+										type="text"
+										class="form-control"
+										:id="infoItem.name"
+										:name="infoItem.name"
+										v-model="infoItem.value"
+										@input="onInput(index, $event.target.value)"
+								>
 							</div>
 
 							<br>
 							<hr>
 
-							<button type="submit" class="btn btn-primary mt-2 mb-2 mr-2">Send Data</button>
+							<button
+									type="submit"
+									class="btn btn-primary mt-2 mb-2 mr-2"
+									:disabled="done < controls.length"
+							>Send Data</button>
 							<button type="reset" class="btn btn-warning mt-2 mb-2" @click="resetForm">Reset Form</button>
 						</form>
 
@@ -106,40 +123,58 @@
 						value: '',
 						pattern: /.+/
 					}
-				]
+				],
+				controls: []
 			},
-			computed: {
-				progressWidth() {
-					let infoThis = this.info;
-					for (let index in infoThis) {
-						if (infoThis[index].pattern.test(infoThis[index].value)) {
-							return progressWidth += 25;
-						} else if (infoThis[index].value.length > 0) {
-							return progressWidth -= 25;
-						} else {
-							return progressWidth = 0;
-						}
-					}
-				},
+			created() {
+				for (let i = 0; i < this.info.length; i++) {
+					this.controls.push({
+						activated: this.info[i].value !== '',
+						error: !this.info[i].pattern.test(this.info[i].value)
+					});
+				}
 			},
 			methods: {
-				iconClass(index) {
-					let infoThis = this.info;
-					if (infoThis[index].pattern.test(infoThis[index].value)) {
-						return 'fa-check-circle text-success';
-					} else if (infoThis[index].value.length > 0) {
-						return 'fa-exclamation-circle text-danger';
-					} else {
-						return '';
-					}
+				onInput(index, value) {
+					let data = this.info[index];
+					let control = this.controls[index];
+
+					data.value = value;
+					control.error = !data.pattern.test(value);
+					control.activated = true;
 				},
 
-				resetForm(){
-					this.formSubmitted = false;
+				resetForm() {
+					let self = this;
 
-					let infoThis = this.info;
-					for (let index in infoThis) {
-						infoThis[index].value = '';
+					for (let index in self.info) {
+						self.info[index].value = '';
+					}
+
+					for (let index in self.controls) {
+						self.controls[index].activated = false;
+						self.controls[index].error = true;
+					}
+
+					this.formSubmitted = false;
+				}
+			},
+			computed: {
+				done() {
+					let done = 0;
+
+					let controls = this.controls;
+					for (let i = 0; i < controls.length; i++) {
+						if (!controls[i].error) {
+							done++;
+						}
+					}
+
+					return done;
+				},
+				progressWidth() {
+					return {
+						width: (this.done / this.info.length * 100) + '%'
 					}
 				}
 			}
